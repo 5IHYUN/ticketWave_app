@@ -13,24 +13,24 @@ on:
         required: false
         type: string
 
-  # main merge 기준 prod promotion workflow 자동 실행
-  # 같은 commit으로 dev workflow가 만든 dev-${SHA} 이미지를 prod ECR로 승격
-  push:
-    branches:
-      - main
-    paths-ignore:
-      - "**/*.md"
-      - "docs/**"
-      - ".github/ISSUE_TEMPLATE/**"
-      - ".github/PULL_REQUEST_TEMPLATE/**"
-      - ".gitignore"
-      - ".gitattributes"
+  # 개인 후속 프로젝트에서는 prod 환경을 운영하지 않으므로 main push 자동 승격을 비활성화
+  # (팀 프로젝트 당시: main merge 시 dev-${SHA} 이미지를 prod ECR로 자동 승격)
+  # push:
+  #   branches:
+  #     - main
+  #   paths-ignore:
+  #     - "**/*.md"
+  #     - "docs/**"
+  #     - ".github/ISSUE_TEMPLATE/**"
+  #     - ".github/PULL_REQUEST_TEMPLATE/**"
+  #     - ".gitignore"
+  #     - ".gitattributes"
 
 env:
   AWS_REGION: ap-northeast-2
   DEV_ECR_REPOSITORY: team5-dev-app
   PROD_ECR_REPOSITORY: team5-prod-app
-  CONFIG_REPOSITORY: CLD-05/team5-ticket-config
+  CONFIG_REPOSITORY: 5IHYUN/ticketWave_config
   CONFIG_BRANCH: main
   # prod GitOps 매니페스트 image tag 갱신 대상
   CONFIG_KUSTOMIZATION_PATH: apps/ticket-app/overlays/prod/kustomization.yaml
@@ -83,7 +83,7 @@ jobs:
           echo "prod_image_tag=${PROD_IMAGE_TAG}" >> "$GITHUB_OUTPUT"
 
       # GitHub Environment prod에 AWS_PROD_ROLE_TO_ASSUME secret 등록 필요
-      # 예: arn:aws:iam::194722398200:role/team5-gha-prod-role
+      # 예: arn:aws:iam::<AWS_ACCOUNT_ID>:role/team5-gha-prod-role
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
