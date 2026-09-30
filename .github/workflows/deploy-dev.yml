@@ -23,7 +23,7 @@ on:
 env:
   AWS_REGION: ap-northeast-2
   ECR_REPOSITORY: team5-dev-app
-  CONFIG_REPOSITORY: CLD-05/team5-ticket-config
+  CONFIG_REPOSITORY: 5IHYUN/ticketWave_config
   CONFIG_BRANCH: main
   CONFIG_KUSTOMIZATION_PATH: apps/ticket-app/overlays/dev/kustomization.yaml
 
@@ -61,8 +61,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: ci
 
-    # PR에서는 배포하지 않고, main push 또는 수동 실행에서만 CD를 수행합니다.
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    # AWS dev 환경은 검증일에만 생성하므로 CD는 수동 실행(workflow_dispatch)에서만 수행합니다.
+    # PR / main push에서는 위 ci job(빌드·테스트)만 실행됩니다.
+    if: github.event_name == 'workflow_dispatch'
 
     permissions:
       contents: read
@@ -81,7 +82,7 @@ jobs:
 
       # 3. AWS OIDC로 인증
       # GitHub repository secret에 AWS_ROLE_TO_ASSUME를 등록해야 합니다.
-      # 예: arn:aws:iam::194722398200:role/team5-github-actions-deploy
+      # 예: arn:aws:iam::<AWS_ACCOUNT_ID>:role/team5-gha-dev-role
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
