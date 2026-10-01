@@ -1,0 +1,251 @@
+{
+    "setup_data": {
+        "showId": "37",
+        "users": [
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0YWNmZTM1Mi0zN2ZkLTQ2MzgtYWMxZC03MWQwM2YyNWYzNzciLCJlbWFpbCI6ImxvYWR0ZXN0XzFAZXhhbXBsZS5jb20iLCJpYXQiOjE3OTA4NjQxMDcsImV4cCI6MTc5MDg2NzcwN30.ixwXyZSPqYpeNq3iKHor_1XvJi2isR-YazrLR29ISr0",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI4YmU2NTFiZi05Y2RjLTQyMWQtYTFjNC1jNGY0MzVjOGIwMTEiLCJlbWFpbCI6ImxvYWR0ZXN0XzJAZXhhbXBsZS5jb20iLCJpYXQiOjE3OTA4NjQxMDcsImV4cCI6MTc5MDg2NzcwN30._crbq9_Ig3faAMdoxk3Evj0QJz4dnGe3Uc8eHLRPPbY",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwMzZiZWRhOC1lMGQyLTQzZTMtOTJhZi1mMGNmZmYwNjczZWUiLCJlbWFpbCI6ImxvYWR0ZXN0XzNAZXhhbXBsZS5jb20iLCJpYXQiOjE3OTA4NjQxMDcsImV4cCI6MTc5MDg2NzcwN30.srR7aiRIrjxKmPjIRht2k418XR4rF1jTuXRz97whGCo",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkMDVhM2Q5Yy03Y2Y3LTQ2ZDAtOWMwYy0wMWZiZmYxYTI5MTIiLCJlbWFpbCI6ImxvYWR0ZXN0XzRAZXhhbXBsZS5jb20iLCJpYXQiOjE3OTA4NjQxMDcsImV4cCI6MTc5MDg2NzcwN30.uPxBk10WCp6ck4imduoTO3Lqe3C1jCp80s1nA1L0Rxw",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmZjBjYThjOC00ZmUxLTRkMDktOTJhYi0wZjdkOGU2M2JiMjkiLCJlbWFpbCI6ImxvYWR0ZXN0XzVAZXhhbXBsZS5jb20iLCJpYXQiOjE3OTA4NjQxMDcsImV4cCI6MTc5MDg2NzcwN30.Ic4hw4o7aSgYh2ijEg6cQZ1oNRjM7cvMaE-KUyBHAfM",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI2NzUxNWY1YS02YTE1LTRlNDQtYTRlNi0xNDEwYmE4ZDg4YjMiLCJlbWFpbCI6ImxvYWR0ZXN0XzZAZXhhbXBsZS5jb20iLCJpYXQiOjE3OTA4NjQxMDgsImV4cCI6MTc5MDg2NzcwOH0.jPhNvefiihrwZWEXbbUKfPscYKE5-aEjkocbYrK4WDY",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyNjQ3OGMwYy0wNzJkLTQwOGEtOTdiMS0xYWJmZDNhMDY1M2IiLCJlbWFpbCI6ImxvYWR0ZXN0XzdAZXhhbXBsZS5jb20iLCJpYXQiOjE3OTA4NjQxMDgsImV4cCI6MTc5MDg2NzcwOH0.bvZdqMOVodwe5Eqj-HHNgUMXtYa1bA7Un_aKmB3D9s8",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxZjNiYjBmYi03ZTBmLTRkMTItOTdmNC00NWU1MTIyOGE2MGMiLCJlbWFpbCI6ImxvYWR0ZXN0XzhAZXhhbXBsZS5jb20iLCJpYXQiOjE3OTA4NjQxMDgsImV4cCI6MTc5MDg2NzcwOH0.KQwCDRU8Gez1frW0KAhJx8Fmld9HBa_rrdsoScPJD_8",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJiMTY5NDJkMy1kYWQ3LTRmYzItYjFmYi0xZmZiMmU0ZGQwMTAiLCJlbWFpbCI6ImxvYWR0ZXN0XzlAZXhhbXBsZS5jb20iLCJpYXQiOjE3OTA4NjQxMDgsImV4cCI6MTc5MDg2NzcwOH0.gLheuAsKaYQBr84G91AZvbf9FlpDxmRAyL_gQN9dyjw",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJiMWU0NDhhMC02NzgxLTQ1MmUtYTM2Zi02Nzc2ZjZkZjg3YjciLCJlbWFpbCI6ImxvYWR0ZXN0XzEwQGV4YW1wbGUuY29tIiwiaWF0IjoxNzkwODY0MTA4LCJleHAiOjE3OTA4Njc3MDh9.Oi38UNWncBWHHUCO6-wctyf47I8UjbXx1BtJ2P_0Glk",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmMGQzYjc0Zi1hZTA2LTQxZTAtODNiOC0zZjAyNzNkZmEyYTMiLCJlbWFpbCI6ImxvYWR0ZXN0XzExQGV4YW1wbGUuY29tIiwiaWF0IjoxNzkwODY0MTA4LCJleHAiOjE3OTA4Njc3MDh9.BkmgtF3nzFdh9uP2K5Y-fJ1iBBue7TqJzXRMMP6vtVM",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyYThmZTE5OS1mMGYxLTRkN2QtOTAxZi1iMDU2M2M0ODM0MmYiLCJlbWFpbCI6ImxvYWR0ZXN0XzEyQGV4YW1wbGUuY29tIiwiaWF0IjoxNzkwODY0MTA4LCJleHAiOjE3OTA4Njc3MDh9.BvIKNgyBfLve1rrAFCFKnb2ZCfzic2QnZ3XPD5azcQ4",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwMjA5OGVkYy1iZTU0LTQ4ODgtOWUzYi1mYjQ0Mzg1OTkyOGEiLCJlbWFpbCI6ImxvYWR0ZXN0XzEzQGV4YW1wbGUuY29tIiwiaWF0IjoxNzkwODY0MTA5LCJleHAiOjE3OTA4Njc3MDl9.LUp4Unu74TdPaLapn7PyEjZxB0KO6b628Ab-8n55fIk",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3NjY4YmZhMy00ZWFmLTQzNjgtOTY4Zi1kZWMxODEyYzVjYmYiLCJlbWFpbCI6ImxvYWR0ZXN0XzE0QGV4YW1wbGUuY29tIiwiaWF0IjoxNzkwODY0MTA5LCJleHAiOjE3OTA4Njc3MDl9.egc8HRr7_JiSremqAGBl2aYHbfNqVVWVzJhzMxhMiHU",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI2NGU2YTM1Zi04NzczLTQzNDctYjU5Ny1kNjZhNmM0NjNmNTYiLCJlbWFpbCI6ImxvYWR0ZXN0XzE1QGV4YW1wbGUuY29tIiwiaWF0IjoxNzkwODY0MTA5LCJleHAiOjE3OTA4Njc3MDl9.1rg49kHO0DjsqXbkvPvcLG9XmBLRqwLIOONkfnK9F7Y",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwODk3MDhkOS1lNTg0LTQyMDEtYjI3OS1hMGUzOTQ4YzU0ZTAiLCJlbWFpbCI6ImxvYWR0ZXN0XzE2QGV4YW1wbGUuY29tIiwiaWF0IjoxNzkwODY0MTA5LCJleHAiOjE3OTA4Njc3MDl9.h-2rKMCChLmvh_g6UbC56mLvStPtTJtivY4o3ePpQf4",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJlM2I3YjJmNS02NGMyLTRjZTUtYjE0Ni02Y2QwZmViODhjZWMiLCJlbWFpbCI6ImxvYWR0ZXN0XzE3QGV4YW1wbGUuY29tIiwiaWF0IjoxNzkwODY0MTA5LCJleHAiOjE3OTA4Njc3MDl9.z9gcqhK0prSodzLP1fze4OhypdbwDONxDazWkW-QoSw",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJlZmY3OWQyNS03MGU5LTRmOWQtOGRkMS1lMmNjNDUwY2E4MzAiLCJlbWFpbCI6ImxvYWR0ZXN0XzE4QGV4YW1wbGUuY29tIiwiaWF0IjoxNzkwODY0MTA5LCJleHAiOjE3OTA4Njc3MDl9.-JuRme1HBAry9QbVUHxCxvU_yf33y3XARSOEWV2wr4k",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0ZWM5Y2JhZC0xMTllLTQ0YWYtODZkMi1mZTNhNDc0ZDcwNWEiLCJlbWFpbCI6ImxvYWR0ZXN0XzE5QGV4YW1wbGUuY29tIiwiaWF0IjoxNzkwODY0MTA5LCJleHAiOjE3OTA4Njc3MDl9.tkvO0EMDhYpCgQH2T8_t_p-HpQvvml_x27I3ljYAlOI",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyYTBlYmNkMS1kMzQ0LTQzMjctODJjYi00NWRlMWM3NGFhNzAiLCJlbWFpbCI6ImxvYWR0ZXN0XzIwQGV4YW1wbGUuY29tIiwiaWF0IjoxNzkwODY0MTA5LCJleHAiOjE3OTA4Njc3MDl9.SPfvF6-Qc1eylU-8fbso7DV4BIeboEv8GkFpIy0JRtM",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI2ZWU1YzFjYi1mN2U1LTQ3MjItYTVjZC1mMzBhMGFhODQ5YmQiLCJlbWFpbCI6ImxvYWR0ZXN0XzIxQGV4YW1wbGUuY29tIiwiaWF0IjoxNzkwODY0MTEwLCJleHAiOjE3OTA4Njc3MTB9.DehzB2Z72wXeup08VNfa5jFfK-Y7G3P0XqycQjvjIV0",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZmRhMzEwYi02YjVmLTRkMTktYWQ1Mi1hYzQzMzhiNjcyODUiLCJlbWFpbCI6ImxvYWR0ZXN0XzIyQGV4YW1wbGUuY29tIiwiaWF0IjoxNzkwODY0MTEwLCJleHAiOjE3OTA4Njc3MTB9.yQ4FundnaCoi_Fm4ZXMMCWTwsQvQ6wK3s9PHiHNfXnQ",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI5YzA3YjgxMS1kZTc4LTRjZmYtOTdmOS04ZGU3YzY0NDBhZGMiLCJlbWFpbCI6ImxvYWR0ZXN0XzIzQGV4YW1wbGUuY29tIiwiaWF0IjoxNzkwODY0MTEwLCJleHAiOjE3OTA4Njc3MTB9.YPe6dGrUR2Quxqq217xxQQi7J-tcHal-mF988FOMdlM",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzY2ExZTViZi1kNmZiLTRkMjUtODBlNy02ZmZlNTgxZWMzM2QiLCJlbWFpbCI6ImxvYWR0ZXN0XzI0QGV4YW1wbGUuY29tIiwiaWF0IjoxNzkwODY0MTEwLCJleHAiOjE3OTA4Njc3MTB9.5TQ68oZzNtNcl7oX1nkmc8nBkjcEGHTQQGU7eqrTXtI",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmZjhlYTQ2ZC0wOGUzLTQzZDYtYjcwMC0wM2U5MjU0NjY1YWUiLCJlbWFpbCI6ImxvYWR0ZXN0XzI1QGV4YW1wbGUuY29tIiwiaWF0IjoxNzkwODY0MTEwLCJleHAiOjE3OTA4Njc3MTB9.Dp_AfdTYWm6dqfAiyHtaHJ-GXpfpuMT_dCoZaXXS--g",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0ZjQ5ZjcxOS00NjUxLTRiOGEtOGJmOS01YzU3ZGIyMWMxOTEiLCJlbWFpbCI6ImxvYWR0ZXN0XzI2QGV4YW1wbGUuY29tIiwiaWF0IjoxNzkwODY0MTEwLCJleHAiOjE3OTA4Njc3MTB9.Cj8pqOfgx-I9NSHMUW4Vm680jLqfSEeD3pIXhMOw6fw",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI1M2Y1NzU0ZS02Y2RmLTQ5N2EtODE3Yy0yOGIzNDY4ZjBiZTMiLCJlbWFpbCI6ImxvYWR0ZXN0XzI3QGV4YW1wbGUuY29tIiwiaWF0IjoxNzkwODY0MTEwLCJleHAiOjE3OTA4Njc3MTB9.nw7zIMtjBle1tKMRepKPiy1klpTYpVi1YLKUn4x90QM",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJiZDI4ODc3Zi00MmMyLTQ0N2ItYjgzYy1mN2Q1MWMwMWNkMDIiLCJlbWFpbCI6ImxvYWR0ZXN0XzI4QGV4YW1wbGUuY29tIiwiaWF0IjoxNzkwODY0MTEwLCJleHAiOjE3OTA4Njc3MTB9.Kw7C7BOhq4uidXgva57wGEB-mcUzUNRxE3-BpwMvcwc",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI1MDc2ODk3Mi1lZWZhLTRmZDItYjUyOC00MjMwMmJiOGM2NjAiLCJlbWFpbCI6ImxvYWR0ZXN0XzI5QGV4YW1wbGUuY29tIiwiaWF0IjoxNzkwODY0MTExLCJleHAiOjE3OTA4Njc3MTF9.vdiqI_1IuZphnh29kHwwPd5CeKUR0hKNGNpm_01KWzk",
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI1MDVjNTNiZi04YmNjLTRhZTMtYTc3Ny1lYzIzODVmZDJkM2YiLCJlbWFpbCI6ImxvYWR0ZXN0XzMwQGV4YW1wbGUuY29tIiwiaWF0IjoxNzkwODY0MTExLCJleHAiOjE3OTA4Njc3MTF9.a7GuAP5SUg9tGEsDKVwXwXyx5GxYZYhL8-BWBY0Lb8Q"
+        ]
+    },
+    "root_group": {
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {},
+        "checks": {}
+    },
+    "metrics": {
+        "http_req_sending": {
+            "p(95)": 0.027,
+            "avg": 0.014982769819834154,
+            "min": 0.003,
+            "med": 0.011,
+            "max": 3.439,
+            "p(90)": 0.022
+        },
+        "http_req_duration{name:hold}": {
+            "min": 3.037,
+            "med": 8.9185,
+            "max": 106.891,
+            "p(90)": 14.9696,
+            "p(95)": 18.167499999999993,
+            "avg": 10.283527098321342,
+            "thresholds": {
+                "p(95)<500": false
+            }
+        },
+        "http_reqs": {
+            "count": 29251,
+            "rate": 157.89223394867096
+        },
+        "data_sent": {
+            "count": 11938288,
+            "rate": 64440.975072394496
+        },
+        "data_received": {
+            "count": 170089451,
+            "rate": 918115.7358549454
+        },
+        "vus": {
+            "value": 30,
+            "min": 0,
+            "max": 30
+        },
+        "queue_wait_ms": {
+            "med": 3,
+            "max": 28,
+            "p(90)": 6,
+            "p(95)": 8,
+            "avg": 3.7496402877697843,
+            "min": 1
+        },
+        "vus_max": {
+            "value": 30,
+            "min": 30,
+            "max": 30
+        },
+        "seat_hold_ok": {
+            "count": 4170,
+            "rate": 22.508995096439712
+        },
+        "http_req_duration{expected_response:true}": {
+            "avg": 7.318689959317671,
+            "min": 0.495,
+            "med": 4.934,
+            "max": 137.918,
+            "p(90)": 16.044,
+            "p(95)": 22.032
+        },
+        "http_req_duration": {
+            "min": 0.495,
+            "med": 4.934,
+            "max": 137.918,
+            "p(90)": 16.044,
+            "p(95)": 22.032,
+            "avg": 7.318689959317671
+        },
+        "http_req_blocked": {
+            "max": 7.786,
+            "p(90)": 0.006,
+            "p(95)": 0.008,
+            "avg": 0.008416977197359897,
+            "min": 0.001,
+            "med": 0.003
+        },
+        "http_req_waiting": {
+            "avg": 7.109809237291071,
+            "min": 0.463,
+            "med": 4.785,
+            "max": 137.75,
+            "p(90)": 15.689,
+            "p(95)": 21.76249999999999
+        },
+        "booking_accepted": {
+            "count": 4170,
+            "rate": 22.508995096439712
+        },
+        "booking_confirmed": {
+            "count": 4170,
+            "rate": 22.508995096439712
+        },
+        "http_req_failed": {
+            "passes": 0,
+            "fails": 29251,
+            "value": 0
+        },
+        "http_req_connecting": {
+            "min": 0,
+            "med": 0,
+            "max": 7.668,
+            "p(90)": 0,
+            "p(95)": 0,
+            "avg": 0.004086390208881744
+        },
+        "http_req_failed{phase:main}": {
+            "passes": 0,
+            "fails": 20850,
+            "thresholds": {
+                "rate<0.01": false
+            },
+            "value": 0
+        },
+        "iteration_duration": {
+            "avg": 1303.434521927814,
+            "min": 1270.1365,
+            "med": 1299.865229,
+            "max": 1541.97825,
+            "p(90)": 1321.1648539,
+            "p(95)": 1330.53217065
+        },
+        "http_req_tls_handshaking": {
+            "max": 0,
+            "p(90)": 0,
+            "p(95)": 0,
+            "avg": 0,
+            "min": 0,
+            "med": 0
+        },
+        "http_req_receiving": {
+            "max": 8.939,
+            "p(90)": 0.571,
+            "p(95)": 0.8204999999999987,
+            "avg": 0.1938979522067631,
+            "min": 0.01,
+            "med": 0.054
+        },
+        "http_req_duration{name:booking}": {
+            "avg": 19.083047721822506,
+            "min": 3.93,
+            "med": 16.7845,
+            "max": 129.79,
+            "p(90)": 30.6785,
+            "p(95)": 36.22774999999999,
+            "thresholds": {
+                "p(95)<500": false
+            }
+        },
+        "http_req_duration{name:queue_enter}": {
+            "max": 23.117,
+            "p(90)": 6.072,
+            "p(95)": 7.607849999999998,
+            "avg": 3.5992340527578017,
+            "min": 0.951,
+            "med": 2.916,
+            "thresholds": {
+                "p(95)<1000": false
+            }
+        },
+        "booking_confirm_rate": {
+            "fails": 0,
+            "passes": 4170,
+            "thresholds": {
+                "rate>0.95": false
+            },
+            "value": 1
+        },
+        "http_req_duration{name:booking_status}": {
+            "min": 0.495,
+            "med": 0.832,
+            "max": 7.447,
+            "p(90)": 1.387,
+            "p(95)": 1.6175499999999998,
+            "avg": 0.9712628297362105,
+            "thresholds": {
+                "p(95)<1000": false
+            }
+        },
+        "iterations": {
+            "count": 4170,
+            "rate": 22.508995096439712
+        },
+        "http_req_duration{name:seats}": {
+            "min": 3.45,
+            "med": 8.506,
+            "max": 104.14,
+            "p(90)": 14.412400000000002,
+            "p(95)": 16.49035,
+            "avg": 9.79184508393285,
+            "thresholds": {
+                "p(95)<1000": false
+            }
+        },
+        "booking_e2e_ms": {
+            "max": 260,
+            "p(90)": 252,
+            "p(95)": 252.5499999999998,
+            "avg": 251.34172661870502,
+            "min": 250,
+            "med": 251,
+            "thresholds": {
+                "p(95)<5000": false
+            }
+        }
+    }
+}
