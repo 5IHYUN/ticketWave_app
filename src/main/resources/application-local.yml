@@ -1,8 +1,11 @@
+# local 프로필: 인프라는 docker-compose, 앱은 IDE에서 실행
+#   docker compose up -d mysql redis localstack
+# 접속 정보는 compose 포트 매핑(MySQL 3307) 기준
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/ticketing?useUnicode=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    username: root
-    password: 
+    url: jdbc:mysql://localhost:3307/ticketing?useUnicode=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: ticketing
+    password: ticketing1234           # 로컬 compose 전용 계정
 
   data:
     redis:
@@ -19,10 +22,6 @@ spring:
       s3:
         endpoint: http://localhost:4566
         path-style-access-enabled: true
-      credentials:
+      credentials:                    # LocalStack 더미 자격 증명
         access-key: test-access-key
         secret-key: test-secret-key
-
-app:
-  seat:
-    hold-ttl-seconds: 10

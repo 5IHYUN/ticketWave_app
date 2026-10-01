@@ -1,9 +1,19 @@
+# 공통 설정 (모든 프로필 공통 기본값)
+# 프로필별 값은 application-{profile}.yml, 실행 환경별 값은 환경변수로 덮어씀
+# datasource 접속 정보는 프로필(local/docker/dev/prod)별로 정의
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3307/ticketing?useUnicode=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    username: root
-    password: 1234
     driver-class-name: com.mysql.cj.jdbc.Driver
+    # HikariCP 공통 기준 (DataSourceConfig의 masterDataSource에 바인딩)
+    # dev/prod는 각 프로필에서 풀 크기 재산정
+    hikari:
+      maximum-pool-size: ${DB_POOL_MAX_SIZE:10}
+      minimum-idle: ${DB_POOL_MIN_IDLE:2}
+      connection-timeout: 3000        # 풀 고갈 시 3초 후 실패 (무한 대기 방지, 적체 가시화)
+      max-lifetime: 1800000           # 30분
+      idle-timeout: 600000            # 10분
+      pool-name: booking-hikari       # 메트릭 label(pool=booking-hikari) 고정, 환경 간 대시보드 공용
+
   servlet:
     multipart:
       max-file-size: 10MB
@@ -11,12 +21,9 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: update                # TODO: validate 전환 검토 (prod는 validate)
     database-platform: org.hibernate.dialect.MySQLDialect
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
+    show-sql: false                   # 쿼리 로그 비활성화 (부하 시 로그 폭증, 구조화 로그 노이즈 방지)
     open-in-view: false
 
   data:
@@ -42,10 +49,43 @@ app:
     bucket: ${AWS_S3_POSTER_BUCKET:team5-dev-poster-bucket}
     cdn-base-url: ${APP_S3_CDN_BASE_URL:}
   admin:
-    token: ${ADMIN_TOKEN:admin}
+    token: ${ADMIN_TOKEN:admin}       # TODO: 기본값 제거 검토 (dev/prod ADMIN_TOKEN 주입 여부 확인 후)
+  seat:
+    # 좌석 선점 유지 시간, 서비스 정책 5분
+    # (기존 local/docker/dev 10초는 정책과 불일치, 부하 시 예약 전 선점 만료로 CONFLICT 급증)
+    hold-ttl-seconds: ${APP_SEAT_HOLD_TTL_SECONDS:300}
 
+# 대기열 설정
+# - max-active-users: 동시 입장(예매 화면 진입) 최대 인원
+# - token-ttl-seconds: 입장 유지 시간 = 평균 체류 시간 상한 (토큰 검증 성공 시 연장)
+# - promotion-batch-size: 승격 주기마다 대기열에서 입장시킬 최대 인원 N
+#     N ≈ max-active-users / token-ttl-seconds = 10000 / 300 ≈ 34 (초당)
+#     실제 승격 인원은 min(N, max-active-users - 현재 active), PROMOTE_LUA에서 원자 계산
+#     Redis 락으로 주기당 1개 Pod만 승격, Pod 수와 무관하게 초당 N명
+#   ※ 0 이하 설정 시 스케줄 승격 비활성화 → 대기열 고착
+#   ※ k6 측정 처리량 기준으로 재조정 예정
+queue:
+  max-active-users: ${QUEUE_MAX_ACTIVE_USERS:10000}
+  token-ttl-seconds: ${QUEUE_TOKEN_TTL_SECONDS:300}
+  promotion-batch-size: ${QUEUE_PROMOTION_BATCH_SIZE:34}
+  promotion-interval-ms: ${QUEUE_PROMOTION_INTERVAL_MS:1000}
+
+# Actuator/Micrometer → Prometheus
+# 메트릭 설정은 전 환경 공통 (기존 dev/prod에만 있어 로컬에서 p95/p99 계산 불가였음)
 management:
   endpoints:
     web:
       exposure:
         include: prometheus,health,info
+  metrics:
+    tags:
+      service: booking                # 공통 label
+    distribution:
+      # histogram_quantile()용 _bucket 시계열 생성, 미설정 시 p95/p99 패널 No data
+      percentiles-histogram:
+        http.server.requests: true    # API 응답시간 (좌석 선점 등)
+        booking.confirm.e2e: true     # 예약 요청 → Worker 확정 e2e 시간
+      # SLO 경계 버킷, 임계값 부근 정밀도 확보
+      slo:
+        http.server.requests: 200ms,500ms,1s,2s
+        booking.confirm.e2e: 1s,2s,5s
