@@ -59,3 +59,4 @@ node_modules/
 tests/k6/node_modules/
 tests/k6/tokens.json
 tests/k6/temp_run_script.js
+!docker-compose.yml

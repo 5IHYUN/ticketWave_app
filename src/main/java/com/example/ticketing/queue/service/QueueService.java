@@ -31,12 +31,22 @@ public class QueueService {
     private static final String ACTIVE_SHOWS_KEY = "queue:active-shows";
     private static final String USER_TOKEN_KEY_PREFIX = "queue:user-token:";
     private static final String TOKEN_KEY_PREFIX = "queue:token:";
-    private static final Duration QUEUE_TOKEN_TTL = Duration.ofMinutes(10);
+    // 다중 Pod에서 승격 스케줄러가 동시에 돌지 않도록 하는 분산 락 키
+    private static final String PROMOTE_LOCK_KEY = "queue:promote-lock";
 
-    @Value("${queue.max-active-users:${queue.active-entry-limit:5000}}")
+    // Queue Token / active 입장 유효 시간 (검증 성공 시 sliding 연장)
+    @Value("${queue.token-ttl-seconds:300}")
+    private long queueTokenTtlSeconds;
+    private Duration queueTokenTtl;
+
+    // 동시 입장 상한 (active ZSET 최대 인원)
+    @Value("${queue.max-active-users:${queue.active-entry-limit:10000}}")
     private int maxActiveUsers;
 
-    @Value("${queue.promotion-batch-size:100}")
+    // 승격 주기(promotion-interval-ms)마다 승격할 최대 인원 N
+    // 산정: N ≈ 동시 입장 상한 / 평균 체류 시간(초) = 10000 / 300 ≈ 34 (초당)
+    // 실제 승격 인원은 PROMOTE_LUA 안에서 min(N, 상한 - 현재 active)로 제한
+    @Value("${queue.promotion-batch-size:34}")
     private int promotionBatchSize;
 
     @Value("${queue.promotion-interval-ms:1000}")
@@ -49,7 +59,18 @@ public class QueueService {
     private boolean queueTokenBypass;
 
     @PostConstruct
-    void warnIfBypassEnabled() {
+    void initQueueSettings() {
+        this.queueTokenTtl = Duration.ofSeconds(queueTokenTtlSeconds);
+        if (promotionBatchSize <= 0) {
+            // 0 이하면 스케줄 승격이 꺼져, 한 명이라도 대기하면 이후 진입자 전원이 대기열에 고착된다
+            log.warn("queue.promotion-batch-size={} : 스케줄 승격 비활성화 상태", promotionBatchSize);
+        }
+        log.info("Queue settings - maxActiveUsers={}, promotionBatchSize={}/{}ms, tokenTtl={}s",
+                maxActiveUsers, promotionBatchSize, promotionIntervalMs, queueTokenTtlSeconds);
+        warnIfBypassEnabled();
+    }
+
+    private void warnIfBypassEnabled() {
         if (queueTokenBypass) {
             log.warn("==== QUEUE TOKEN BYPASS 활성화됨 (부하테스트 모드). 운영 환경이면 즉시 끌 것! ====");
         }
@@ -113,11 +134,16 @@ public class QueueService {
      * Lua 1회 실행으로 대체 — 5만 대기열에서 promote가 매초 Redis를 대량 점유하던 문제 해소.
      *
      * KEYS[1]=waiting ZSET, KEYS[2]=active ZSET, KEYS[3]=active-shows SET
-     * ARGV[1]=slots(승급할 최대 인원), ARGV[2]=activeExpiresAt(ms), ARGV[3]=showId
+     * ARGV[1]=batchSize(주기당 최대 승급 인원), ARGV[2]=activeExpiresAt(ms), ARGV[3]=showId,
+     * ARGV[4]=now(ms), ARGV[5]=maxActiveUsers
+     * 실제 승급 인원 = min(batchSize, maxActiveUsers - 현재 active) — 상한 계산을 Lua 안에서 원자적으로 수행
      * 반환: 승급한 인원 수
      */
     private static final String PROMOTE_LUA =
-            "local slots = tonumber(ARGV[1]) " +
+            // 만료된 active 정리 후 빈 슬롯을 Lua 안에서 계산 (enter와의 경쟁으로 상한 초과 방지)
+            "redis.call('ZREMRANGEBYSCORE', KEYS[2], '-inf', ARGV[4]) " +
+            "local free = tonumber(ARGV[5]) - redis.call('ZCARD', KEYS[2]) " +
+            "local slots = math.min(tonumber(ARGV[1]), free) " +
             "if slots <= 0 then return 0 end " +
             // waiting 상위 slots명 조회 (score 오름차순 = 먼저 온 순)
             "local users = redis.call('ZRANGE', KEYS[1], 0, slots - 1) " +
@@ -278,8 +304,8 @@ public class QueueService {
 
         // 토큰 검증 성공 시, 활성 상태 유지를 위해 만료 시간 연장 (Sliding Window)
         redisTemplate.opsForZSet().add(activeQueueKey(showId), userId, activeExpiresAt());
-        redisTemplate.expire(userTokenKey(showId, userId), QUEUE_TOKEN_TTL);
-        redisTemplate.expire(tokenKey(token), QUEUE_TOKEN_TTL);
+        redisTemplate.expire(userTokenKey(showId, userId), queueTokenTtl);
+        redisTemplate.expire(tokenKey(token), queueTokenTtl);
     }
 
     // promote 전용 락. enterQueue/getStatus와 'this' 락을 공유하지 않아
@@ -289,6 +315,14 @@ public class QueueService {
 
     @Scheduled(fixedRateString = "${queue.promotion-interval-ms:1000}")
     public void promoteQueues() {
+        // 다중 Pod 분산 락: 승격 주기당 한 Pod만 승격을 수행한다.
+        // 락 없이 Pod마다 돌면 실제 승격 속도가 N × Pod 수가 되어 batch-size가 고정값 의미를 잃는다.
+        // 락은 해제하지 않고 TTL(주기의 90%)로 자연 만료시켜, 같은 주기 안의 다른 Pod 실행을 건너뛰게 한다.
+        Boolean acquired = redisTemplate.opsForValue().setIfAbsent(
+                PROMOTE_LOCK_KEY, "1", Duration.ofMillis(Math.max(100, promotionIntervalMs * 9 / 10)));
+        if (!Boolean.TRUE.equals(acquired)) {
+            return;
+        }
         synchronized (promoteLock) {
             for (Long showId : findQueueShowIds()) {
                 cleanupExpiredActiveUsers(showId);
@@ -323,21 +357,15 @@ public class QueueService {
             return;
         }
 
-        String activeQueueKey = activeQueueKey(showId);
-        String waitingQueueKey = waitingQueueKey(showId);
-        long activeCount = zSetSize(activeQueueKey);
-        long slots = Math.min(promotionBatchSize, maxActiveUsers - activeCount);
-        if (slots <= 0) {
-            return;
-        }
-
-        // 배치 승급 + 레지스트리 정리를 PROMOTE_LUA 한 번으로 (기존 Redis 3N회 왕복 → 1회)
+        // 빈 슬롯 계산과 승급을 PROMOTE_LUA 한 번에 원자 처리 (Java에서 ZCARD 후 승급하면 enter와 경쟁해 상한 초과 가능)
         redisTemplate.execute(
                 PROMOTE_SCRIPT,
-                java.util.List.of(waitingQueueKey, activeQueueKey, ACTIVE_SHOWS_KEY),
-                String.valueOf(slots),
+                java.util.List.of(waitingQueueKey(showId), activeQueueKey(showId), ACTIVE_SHOWS_KEY),
+                String.valueOf(promotionBatchSize),
                 String.valueOf(activeExpiresAt()),
-                String.valueOf(showId)
+                String.valueOf(showId),
+                String.valueOf(Instant.now().toEpochMilli()),
+                String.valueOf(maxActiveUsers)
         );
     }
 
@@ -392,7 +420,7 @@ public class QueueService {
     }
 
     private double activeExpiresAt() {
-        return Instant.now().plus(QUEUE_TOKEN_TTL).toEpochMilli();
+        return Instant.now().plus(queueTokenTtl).toEpochMilli();
     }
 
     private String issueQueueToken(Long showId, String userId) {
@@ -407,7 +435,7 @@ public class QueueService {
                 String.valueOf(activeExpiresAt()),
                 newToken,
                 tokenValue(showId, userId),
-                String.valueOf(QUEUE_TOKEN_TTL.getSeconds())
+                String.valueOf(queueTokenTtl.getSeconds())
         );
         return used;
     }

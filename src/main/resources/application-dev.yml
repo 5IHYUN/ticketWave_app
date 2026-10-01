@@ -40,28 +40,13 @@ spring:
         static: ap-northeast-2
       # credentials 제거 -> IRSA(ServiceAccount role)로 인증
 
-app:
-  seat:
-    hold-ttl-seconds: 10
-
 # Actuator/Micrometer -> Prometheus 노출 (ServiceMonitor가 scrape)
 management:
   endpoints:
     web:
       exposure:
         include: health,prometheus
-  metrics:
-    tags:
-      service: booking                # 공통 label
-    distribution:
-      # histogram_quantile()용 _bucket 시계열 생성. 안 켜면 p99 패널이 No data.
-      percentiles-histogram:
-        http.server.requests: true    # 좌석 선점 API p99 등
-        booking.confirm.e2e: true     # 예매 확정 e2e p99 (워커 메트릭)
-      # SLO 경계 버킷 추가(선택) — 5초 SLO 부근 정밀도 ↑
-      slo:
-        http.server.requests: 200ms,500ms,1s,2s
-        booking.confirm.e2e: 1s,2s,5s
+  # metrics(tags, histogram, slo)는 application.yml 공통 설정 사용
 
 # 부하테스트(A 방식) 전용: 큐토큰 검증 우회 스위치. 기본 false, env로만 켬.
 queue:
