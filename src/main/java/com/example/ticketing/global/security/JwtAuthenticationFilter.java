@@ -6,6 +6,8 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import com.example.ticketing.global.logging.LogKeys;
+import org.slf4j.MDC;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
@@ -32,6 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     UsernamePasswordAuthenticationToken auth =
                             new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList());
                     SecurityContextHolder.getContext().setAuthentication(auth);
+                    MDC.put(LogKeys.USER_ID, userId);   // 이후 요청 로그에 사용자 ID 포함 (RequestIdFilter에서 정리)
                 }
             } catch (io.jsonwebtoken.ExpiredJwtException e) {
                 request.setAttribute("exception", com.example.ticketing.global.exception.ErrorCode.TOKEN_EXPIRED);

@@ -30,7 +30,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import com.example.ticketing.global.logging.LogKeys;
 
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
+@Slf4j
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
@@ -112,6 +117,9 @@ public class SeatController {
 
     @ExceptionHandler(ConflictException.class)
     public ResponseEntity<String> handleConflictException(ConflictException e) {
+        // 좌석 경합(이미 선점·판매): 정상 업무 거절 → INFO
+        log.info("좌석 선점 실패 {} {} {}", kv(LogKeys.EVENT, "seat.hold_rejected"),
+                kv("errorCode", e.getErrorCode().getCode()), kv("reason", e.getMessage()));
         return ResponseEntity.status(HttpStatus.CONFLICT).body("ERR_SEAT_ALREADY_TAKEN");
     }
 }

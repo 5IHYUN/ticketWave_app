@@ -14,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
 @Component
 @Slf4j
 @RequiredArgsConstructor
@@ -37,7 +39,8 @@ public class BookingProcessor {
 
         // 같은 메시지 재전송 멱등 처리 (최초 처리 때 이미 감소했으므로 여기선 감소하지 않음)
         if (seat.getStatus() == SeatStatus.SOLD) {
-            log.warn("이미 판매 완료된 좌석입니다. - 좌석 : {}", seat.getId());
+            // 소유자 확인 없이 CONFIRMED 반환하는 경로 (재전송 멱등 처리 의도, 타 사용자 메시지도 통과 → 정합성 점검 대상)
+            log.warn("이미 판매 완료된 좌석 {}", kv("event", "worker.already_sold"));   // seatId는 MDC에 포함
             return BookingResult.CONFIRMED;
         }
 
@@ -64,7 +67,7 @@ public class BookingProcessor {
                     }
                 });
 
-        log.info("예매 확정 완료 - 좌석: {}", seat.getId());
+        log.debug("예매 확정 완료 - 좌석: {}", seat.getId());   // 결과 로그는 BookingWorker의 worker.processed
         return BookingResult.CONFIRMED;
     }
 }
