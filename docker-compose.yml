@@ -82,7 +82,64 @@ services:
       localstack:
         condition: service_healthy
 
+  # ===== 관측 스택 (로컬) =====
+  # 로그: app stdout(JSON) → Alloy → Loki
+  # 메트릭: app /actuator/prometheus → Prometheus
+  # 조회: Grafana (http://localhost:3000, 로컬 전용 익명 관리자)
+  loki:
+    image: grafana/loki:3.4.2
+    container_name: team5-ticket-loki
+    command: ["-config.file=/etc/loki/loki-config.yaml"]
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./observability/loki/loki-config.yaml:/etc/loki/loki-config.yaml:ro
+      - loki-data:/loki
+
+  alloy:
+    image: grafana/alloy:v1.7.1
+    container_name: team5-ticket-alloy
+    command: ["run", "--server.http.listen-addr=0.0.0.0:12345", "/etc/alloy/config.alloy"]
+    ports:
+      - "12345:12345"                 # Alloy UI (수집 파이프라인 상태 확인)
+    volumes:
+      - ./observability/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      - loki
+
+  prometheus:
+    image: prom/prometheus:v3.2.1
+    container_name: team5-ticket-prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yaml
+      - --storage.tsdb.retention.time=7d
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./observability/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
+      - prometheus-data:/prometheus
+
+  grafana:
+    image: grafana/grafana:11.5.2
+    container_name: team5-ticket-grafana
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - loki
+      - prometheus
+
 volumes:
   mysql-data:
   redis-data:
   localstack-data:
+  loki-data:
+  prometheus-data:
+  grafana-data:

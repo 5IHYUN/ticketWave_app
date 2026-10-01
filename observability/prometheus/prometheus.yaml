@@ -1,0 +1,12 @@
+# Prometheus 로컬 구성: 앱 Actuator 메트릭 수집
+global:
+  scrape_interval: 5s                 # 로컬 실험용 짧은 주기 (k6 3분 실행 구간 해상도 확보)
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: ticket-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["app:8080"]
+        labels:
+          env: local

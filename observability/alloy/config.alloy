@@ -1,0 +1,61 @@
+// Grafana Alloy: 앱 컨테이너 표준 출력(JSON 로그) 수집 → Loki 전송
+// 라벨은 저카디널리티 값만 사용 (service, container, level)
+// requestId·bookingRequestId 등 고유 값은 라벨 대신 LogQL `| json` 파싱으로 검색
+
+// 1) Docker 컨테이너 탐색
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+
+  // Docker API 필터로 앱 컨테이너만 탐색 (relabel_rules의 keep은 수집 대상 제외에 미적용)
+  filter {
+    name   = "name"
+    values = ["team5-ticket-app"]
+  }
+}
+
+// 2) 컨테이너 이름 라벨 부여
+discovery.relabel "app" {
+  targets = []
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+}
+
+// 3) 로그 수집
+loki.source.docker "app" {
+  host          = "unix:///var/run/docker.sock"
+  targets       = discovery.docker.containers.targets
+  relabel_rules = discovery.relabel.app.rules
+  forward_to    = [loki.process.app.receiver]
+}
+
+// 4) JSON 파싱 → level 라벨, 로그 시각을 앱 timestamp로 통일
+loki.process "app" {
+  stage.json {
+    expressions = {
+      level     = "level",
+      timestamp = "timestamp",
+    }
+  }
+  stage.labels {
+    values = { level = "" }
+  }
+  stage.timestamp {
+    source = "timestamp"
+    format = "RFC3339Nano"
+  }
+  stage.static_labels {
+    values = { service = "ticket-service" }
+  }
+  forward_to = [loki.write.local.receiver]
+}
+
+// 5) Loki 전송
+loki.write "local" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}
