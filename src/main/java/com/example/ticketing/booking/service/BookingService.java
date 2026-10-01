@@ -11,7 +11,10 @@ import com.example.ticketing.queue.service.QueueService;
 import com.example.ticketing.seat.repository.SeatRepository;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
+import com.example.ticketing.global.logging.LogKeys;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -24,6 +27,9 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BookingService {
@@ -56,6 +62,10 @@ public class BookingService {
 
         String holdKey = "seat:" + seatId;
         String requestId = UUID.randomUUID().toString();
+        // 이후 로그(API 구간)에 예약 요청 ID, 좌석, 공연 포함 → Worker 로그와 같은 키로 검색
+        MDC.put(LogKeys.BOOKING_REQUEST_ID, requestId);
+        MDC.put(LogKeys.SHOW_ID, String.valueOf(showId));
+        MDC.put(LogKeys.SEAT_ID, String.valueOf(seatId));
 
         // Redis Lua Script: HOLD 여부 확인 및 즉시 삭제(Settle)
         String lua = """
@@ -80,12 +90,17 @@ public class BookingService {
         }
 
         // FIFO 큐 전송: 공연별 순서 보장 및 중복 방지 헤더 포함
+        // HTTP 요청 ID를 메시지에 실어 Worker 로그와 연결, 전송 소요 시간 기록 (SQS 지연 구간 식별)
+        long sendStart = System.nanoTime();
         sqsTemplate.send(to -> to
             .queue(bookingQueue)
-            .payload(new BookingMessage(requestId, showId, seatId, userId, queueToken, System.currentTimeMillis()))
+            .payload(new BookingMessage(requestId, showId, seatId, userId, queueToken,
+                    System.currentTimeMillis(), MDC.get(LogKeys.REQUEST_ID)))
             .header("message-group-id", String.valueOf(showId))
             .header("message-deduplication-id", requestId)
         );
+        long sqsSendMs = (System.nanoTime() - sendStart) / 1_000_000;
+        log.info("예약 요청 SQS 전송 {} {}", kv(LogKeys.EVENT, "booking.sqs_sent"), kv("sqsSendMs", sqsSendMs));
 
         return new BookingAcceptResponse(requestId, "ACCEPTED");
     }

@@ -2,6 +2,8 @@
 # 프로필별 값은 application-{profile}.yml, 실행 환경별 값은 환경변수로 덮어씀
 # datasource 접속 정보는 프로필(local/docker/dev/prod)별로 정의
 spring:
+  application:
+    name: ticket-service           # 로그 service 필드, 메트릭 구분용
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     # HikariCP 공통 기준 (DataSourceConfig의 masterDataSource에 바인딩)
@@ -50,6 +52,8 @@ app:
     cdn-base-url: ${APP_S3_CDN_BASE_URL:}
   admin:
     token: ${ADMIN_TOKEN:admin}       # TODO: 기본값 제거 검토 (dev/prod ADMIN_TOKEN 주입 여부 확인 후)
+  logging:
+    slow-request-ms: ${APP_LOGGING_SLOW_REQUEST_MS:300}   # 이 시간 이상 걸린 HTTP 요청만 INFO 기록 (event=http.request)
   seat:
     # 좌석 선점 유지 시간, 서비스 정책 5분
     # (기존 local/docker/dev 10초는 정책과 불일치, 부하 시 예약 전 선점 만료로 CONFLICT 급증)

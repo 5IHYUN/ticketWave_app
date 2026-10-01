@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  로그 출력 형식
+  - local 프로필: 사람이 읽기 쉬운 텍스트 (추적 키 포함)
+  - 그 외(docker/dev/prod): JSON 한 줄 (Loki/CloudWatch 수집·검색용)
+  공통 필드: timestamp, level, logger, thread, message, service, env
+  MDC 필드: requestId, bookingRequestId, userId, showId, seatId (LogKeys 참고)
+  이벤트 필드: event, *Ms 등 StructuredArguments.kv()로 추가한 값
+-->
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <springProperty scope="context" name="SERVICE" source="spring.application.name" defaultValue="ticket-service"/>
+    <springProperty scope="context" name="ENV" source="spring.profiles.active" defaultValue="default"/>
+
+    <springProfile name="local">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%d{HH:mm:ss.SSS} %5level [%15.15thread] %-40.40logger{39} [req=%X{requestId:-} bk=%X{bookingRequestId:-}] %msg%n</pattern>
+            </encoder>
+        </appender>
+    </springProfile>
+
+    <springProfile name="!local">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <customFields>{"service":"${SERVICE}","env":"${ENV}"}</customFields>
+                <fieldNames>
+                    <timestamp>timestamp</timestamp>
+                    <version>[ignore]</version>
+                    <levelValue>[ignore]</levelValue>
+                </fieldNames>
+                <!-- 스택트레이스 길이 제한 (한 줄 JSON 크기 관리) -->
+                <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                    <maxDepthPerThrowable>30</maxDepthPerThrowable>
+                    <rootCauseFirst>true</rootCauseFirst>
+                </throwableConverter>
+            </encoder>
+        </appender>
+    </springProfile>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>
