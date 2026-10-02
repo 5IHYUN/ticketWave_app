@@ -11,6 +11,7 @@ import com.example.ticketing.queue.service.QueueService;
 import com.example.ticketing.seat.repository.SeatRepository;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
+import io.micrometer.core.instrument.MeterRegistry;
 import com.example.ticketing.global.logging.LogKeys;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static net.logstash.logback.argument.StructuredArguments.kv;
@@ -39,6 +41,7 @@ public class BookingService {
     private final SeatRepository seatRepository;
     private final QueueService queueService;
     private final SeatGradeRepository seatGradeRepository;
+    private final MeterRegistry meterRegistry;
 
     @Value("${app.sqs.booking-queue:booking-queue}")
     private String bookingQueue;
@@ -90,21 +93,37 @@ public class BookingService {
         }
 
         // FIFO 큐 전송: 공연별 순서 보장 및 중복 방지 헤더 포함
-        // HTTP 요청 ID를 메시지에 실어 Worker 로그와 연결, 전송 소요 시간 기록 (SQS 지연 구간 식별)
+        // HTTP 요청 ID를 메시지에 실어 Worker 로그와 연결
+        // 요청 스레드에서 동기 전송 → SQS 지연이 곧 사용자 응답 지연 (전송 시간 메트릭·로그로 상시 관측)
         long sendStart = System.nanoTime();
-        sqsTemplate.send(to -> to
-            .queue(bookingQueue)
-            .payload(new BookingMessage(requestId, showId, seatId, userId, queueToken,
-                    System.currentTimeMillis(), MDC.get(LogKeys.REQUEST_ID)))
-            .header("message-group-id", String.valueOf(showId))
-            .header("message-deduplication-id", requestId)
-        );
-        long sqsSendMs = (System.nanoTime() - sendStart) / 1_000_000;
+        try {
+            sqsTemplate.send(to -> to
+                .queue(bookingQueue)
+                .payload(new BookingMessage(requestId, showId, seatId, userId, queueToken,
+                        System.currentTimeMillis(), MDC.get(LogKeys.REQUEST_ID)))
+                .header("message-group-id", String.valueOf(showId))
+                .header("message-deduplication-id", requestId)
+            );
+        } catch (RuntimeException e) {
+            recordSqsSend(sendStart, "error");   // 전송 실패도 소요 시간·건수 기록 (예외는 GlobalExceptionHandler에서 로그)
+            throw e;
+        }
+        long sqsSendMs = recordSqsSend(sendStart, "success");
         log.info("예약 요청 SQS 전송 {} {}", kv(LogKeys.EVENT, "booking.sqs_sent"), kv("sqsSendMs", sqsSendMs));
 
         return new BookingAcceptResponse(requestId, "ACCEPTED");
     }
-    
+
+    /**
+     * SQS 전송 시간 기록 → booking_sqs_send_seconds{outcome="success|error"} 히스토그램
+     * 로그(sqsSendMs)는 요청 단위 원인 추적용, 메트릭은 대시보드·알림용
+     */
+    private long recordSqsSend(long startNanos, String outcome) {
+        long elapsedNanos = System.nanoTime() - startNanos;
+        meterRegistry.timer("booking.sqs.send", "outcome", outcome).record(elapsedNanos, TimeUnit.NANOSECONDS);
+        return elapsedNanos / 1_000_000;
+    }
+
     public BookingStatusResponse getBookingStatus(String requestId) {
     	String status = redisTemplate.opsForValue().get("result:" + requestId);
     	if (status == null) {

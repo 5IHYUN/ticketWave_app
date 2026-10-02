@@ -47,6 +47,7 @@ jwt:
 app:
   sqs:
     booking-queue: ${AWS_SQS_BOOKING_QUEUE_URL:booking-queue}
+    booking-dlq: ${AWS_SQS_BOOKING_DLQ_URL:}   # 비어 있으면 DLQ 적체량 조회 생략 (docker는 프로필에서 지정)
   s3:
     bucket: ${AWS_S3_POSTER_BUCKET:team5-dev-poster-bucket}
     cdn-base-url: ${APP_S3_CDN_BASE_URL:}
@@ -89,7 +90,18 @@ management:
       percentiles-histogram:
         http.server.requests: true    # API 응답시간 (좌석 선점 등)
         booking.confirm.e2e: true     # 예약 요청 → Worker 확정 e2e 시간
+        booking.sqs.send: true        # API의 SQS 전송 시간 (요청 스레드 동기 대기 구간)
+        booking.queue.wait: true      # 메시지 생성 → Worker 수신 (전송 + 큐 대기)
+        booking.worker.process: true  # Worker DB 처리 시간 (커넥션 풀 대기 포함)
+      # 버킷 범위 상한, 불필요한 상위 버킷 제거 (시계열 수 절감)
+      maximum-expected-value:
+        booking.sqs.send: 5s
+        booking.queue.wait: 120s
+        booking.worker.process: 10s
       # SLO 경계 버킷, 임계값 부근 정밀도 확보
       slo:
         http.server.requests: 200ms,500ms,1s,2s
         booking.confirm.e2e: 1s,2s,5s
+        booking.sqs.send: 50ms,100ms,300ms,1s
+        booking.queue.wait: 1s,5s,30s,60s
+        booking.worker.process: 100ms,300ms,1s,3s

@@ -24,3 +24,7 @@ spring:
       credentials:                    # LocalStack 더미 자격 증명
         access-key: test-access-key
         secret-key: test-secret-key
+
+app:
+  sqs:
+    booking-dlq: booking-dlq          # localstack-init/init-sqs.sh에서 생성
