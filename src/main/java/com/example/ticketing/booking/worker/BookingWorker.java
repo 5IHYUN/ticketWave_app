@@ -38,6 +38,8 @@ public class BookingWorker {
             // 큐 대기 시간: API의 SQS 전송 시각 → Worker 수신 시각 (Worker 처리 지연·적체 지표)
             long queueWaitMs = System.currentTimeMillis() - message.createdAtEpochMs();
             log.info("예약 메시지 수신 {} {}", kv(LogKeys.EVENT, "worker.received"), kv("queueWaitMs", queueWaitMs));
+            // 큐 대기 시간 → booking_queue_wait_seconds (SQS 전송 시간 포함, Worker 처리량 부족·적체 시 증가)
+            meterRegistry.timer("booking.queue.wait").record(Math.max(queueWaitMs, 0), TimeUnit.MILLISECONDS);
 
             long processStart = System.nanoTime();
             BookingResult outcome;
@@ -48,10 +50,12 @@ public class BookingWorker {
                 outcome = BookingResult.CONFLICT;
             } catch (RuntimeException e) {
                 // 예상 외 실패: 결과 미저장 + 예외 전파 → SQS 재전달 대상
+                recordProcess(processStart, "error");   // 재전달 대상 실패도 처리 시간·건수 기록
                 log.error("예약 처리 실패 {}", kv(LogKeys.EVENT, "worker.failed"), e);
                 throw e;
             }
-            long processMs = (System.nanoTime() - processStart) / 1_000_000;
+            // Worker 처리 시간 → booking_worker_process_seconds{result} (DB 트랜잭션 구간, 커넥션 풀 대기 포함)
+            long processMs = recordProcess(processStart, outcome.metricLabel());
 
             // 확정 결과 카운터 → booking_confirm_total{result="confirmed|conflict|failed"} (SLO용)
             meterRegistry.counter("booking.confirm", "result", outcome.metricLabel()).increment();
@@ -80,6 +84,12 @@ public class BookingWorker {
         } finally {
             MDC.clear();
         }
+    }
+
+    private long recordProcess(long startNanos, String result) {
+        long elapsedNanos = System.nanoTime() - startNanos;
+        meterRegistry.timer("booking.worker.process", "result", result).record(elapsedNanos, TimeUnit.NANOSECONDS);
+        return elapsedNanos / 1_000_000;
     }
 
     private void putTraceContext(BookingMessage message) {
