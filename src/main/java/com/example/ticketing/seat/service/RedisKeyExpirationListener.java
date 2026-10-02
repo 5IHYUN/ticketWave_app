@@ -32,10 +32,11 @@ public class RedisKeyExpirationListener extends KeyExpirationEventMessageListene
     @Transactional
     public void onMessage(Message message, byte[] pattern) {
         String expiredKey = message.toString();
-        log.info("Redis 키 만료 이벤트 감지: {}", expiredKey);
 
         // 만료된 키가 좌석 선점 키("seat:{seatId}")인지 확인
+        // 그 외 키(result:*, queue:promote-lock 등)는 정상 TTL 만료 → 로그 미기록 (초당 수십 건, 로그 노이즈)
         if (expiredKey.startsWith("seat:")) {
+            log.info("좌석 선점 만료 감지: {}", expiredKey);
             try {
                 String seatIdStr = expiredKey.substring("seat:".length());
                 Long seatId = Long.parseLong(seatIdStr);

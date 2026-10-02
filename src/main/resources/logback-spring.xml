@@ -23,6 +23,8 @@
     <springProfile name="!local">
         <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
             <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <!-- logback context 속성(SERVICE, ENV) 중복 출력 방지, customFields의 service/env만 사용 -->
+                <includeContext>false</includeContext>
                 <customFields>{"service":"${SERVICE}","env":"${ENV}"}</customFields>
                 <fieldNames>
                     <timestamp>timestamp</timestamp>
