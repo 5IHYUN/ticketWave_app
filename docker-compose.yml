@@ -1,6 +1,6 @@
 services:
   mysql:
-    image: mysql:8.0
+    image: mysql:8.4   # AWS dev RDS(MySQL 8.4 LTS)와 동일 버전, 8.0은 RDS 표준 지원 종료
     container_name: team5-ticket-mysql
     environment:
       MYSQL_ROOT_PASSWORD: password
