@@ -1,0 +1,64 @@
+# 클러스터 내부 k6 baseline 실행 Job (AWS dev)
+#   - 집 네트워크·인터넷 구간 영향 제거 → 서비스 자체 수치 측정
+#   - 대상: ticket-service ClusterIP 경유 (ALB 미경유)
+#   - 스크립트: tests/k6/baseline.js, lib/api.js를 ConfigMap으로 주입 (상대 경로 import 유지)
+#
+# 실행 (app 레포 루트에서):
+#   kubectl create namespace loadtest
+#   kubectl -n loadtest create configmap k6-scripts \
+#     --from-file=baseline.js=tests/k6/baseline.js --from-file=api.js=tests/k6/lib/api.js
+#   SHA=$(git rev-parse --short HEAD)
+#   sed "s/GIT_SHA_PLACEHOLDER/$SHA/" tests/k6/k8s/baseline-job.yaml | kubectl apply -f -
+#   kubectl -n loadtest logs -f job/k6-baseline
+# 결과 JSON 저장:
+#   kubectl -n loadtest logs job/k6-baseline | sed -n '/===SUMMARY_JSON===/,$p' | tail -n +2 > tests/k6/results/<파일명>.json
+# 재실행: kubectl -n loadtest delete job k6-baseline 후 다시 apply
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-baseline
+  namespace: loadtest
+spec:
+  backoffLimit: 0                  # 실패 시 재시도 안 함 (부하 중복 방지)
+  ttlSecondsAfterFinished: 7200
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: k6
+          image: grafana/k6:1.0.0
+          command: ["sh", "-c"]
+          args:
+            - |
+              k6 run --summary-export=/tmp/summary.json /scripts/baseline.js
+              rc=$?
+              echo "===SUMMARY_JSON==="
+              cat /tmp/summary.json
+              exit $rc
+          env:
+            - name: BASE_URL
+              value: http://ticket-service.ticketing.svc.cluster.local
+            - name: VUS
+              value: "30"
+            - name: DURATION
+              value: "3m"
+            - name: GIT_SHA
+              value: GIT_SHA_PLACEHOLDER
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              memory: 1Gi
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+      volumes:
+        - name: scripts
+          configMap:
+            name: k6-scripts
+            items:
+              - key: baseline.js
+                path: baseline.js
+              - key: api.js
+                path: lib/api.js
