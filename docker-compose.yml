@@ -118,6 +118,8 @@ services:
       - "9090:9090"
     volumes:
       - ./observability/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
+      # 알림 규칙: config 저장소 원본에서 추출 (ticketWave_config에서 ./scripts/extract-rules.sh 먼저 실행)
+      - ${CONFIG_REPO_DIR:-../ticketWave_config}/build/rules:/etc/prometheus/rules:ro
       - prometheus-data:/prometheus
 
   grafana:
@@ -131,6 +133,8 @@ services:
       - "3000:3000"
     volumes:
       - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      # 대시보드: config 저장소 원본 (클러스터와 같은 JSON)
+      - ${CONFIG_REPO_DIR:-../ticketWave_config}/infra/monitoring:/var/lib/grafana/dashboards/config:ro
       - grafana-data:/var/lib/grafana
     depends_on:
       - loki
