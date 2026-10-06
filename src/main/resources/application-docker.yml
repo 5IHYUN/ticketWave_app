@@ -28,3 +28,5 @@ spring:
 app:
   sqs:
     booking-dlq: booking-dlq          # localstack-init/init-sqs.sh에서 생성
+  fault:
+    enabled: true                     # 로컬 장애 시나리오 재현 (redis-cli SET fault:worker-delay-ms 5000)

@@ -3,6 +3,7 @@ package com.example.ticketing.booking.worker;
 import com.example.ticketing.booking.entity.Booking;
 import com.example.ticketing.booking.repository.BookingRepository;
 import com.example.ticketing.booking.sqs.BookingMessage;
+import com.example.ticketing.global.fault.FaultInjector;
 import com.example.ticketing.seat.entity.Seat;
 import com.example.ticketing.seat.entity.SeatStatus;
 import com.example.ticketing.seat.repository.SeatRepository;
@@ -24,6 +25,7 @@ public class BookingProcessor {
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final SeatGradeRepository seatGradeRepository;
+    private final FaultInjector faultInjector;
 
     /**
      * 예매 확정 처리. 결과를 BookingResult로 반환한다.
@@ -32,6 +34,8 @@ public class BookingProcessor {
     @Transactional
     public BookingResult process(BookingMessage message) {
         Seat seat = seatRepository.findById(message.seatId()).orElse(null);
+        // 장애 주입(시나리오 2): 첫 쿼리로 커넥션 획득 후 지연 → 커넥션 반납 지연·풀 고갈, 비활성 시 즉시 반환
+        faultInjector.dbHold();
         if (seat == null) {
             log.error("좌석을 찾을 수 없습니다. - 좌석 : {}", message.seatId());
             return BookingResult.FAILED;
