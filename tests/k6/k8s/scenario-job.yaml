@@ -1,0 +1,64 @@
+# 장애 시나리오용 k6 Job (AWS dev, 클러스터 내부) — analysis/13
+#   baseline-job.yaml과 같은 스크립트, 부하 조건만 치환
+#   - JOB_NAME : Job 이름 (회차별 구분, 예: k6-s1 / k6-s2a / k6-s2b)
+#   - VUS      : 최대 VU 수 = 테스트 계정 수
+#   - RATE     : 0 = closed-loop(constant-vus), 1 이상 = open-loop(초당 시작 수)
+#   - DURATION : 측정 시간 (예: 8m)
+# 실행 (app 레포 루트, k6-scripts ConfigMap 생성 후):
+#   sed -e "s/JOB_NAME/k6-s1/" -e "s/VUS_VALUE/300/" -e "s/RATE_VALUE/15/" -e "s/DURATION_VALUE/8m/" \
+#       -e "s/GIT_SHA_PLACEHOLDER/$(git rev-parse --short HEAD)/" tests/k6/k8s/scenario-job.yaml | kubectl apply -f -
+#   kubectl -n loadtest wait --for=condition=Ready pod -l job-name=k6-s1 --timeout=120s
+#   kubectl -n loadtest logs -f job/k6-s1
+# 결과 저장:
+#   kubectl -n loadtest logs job/k6-s1 | sed -n '/===SUMMARY_JSON===/,$p' | tail -n +2 > tests/k6/results/aws-s1.json
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: JOB_NAME
+  namespace: loadtest
+spec:
+  backoffLimit: 0                  # 실패 시 재시도 안 함 (부하 중복 방지)
+  ttlSecondsAfterFinished: 7200
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: k6
+          image: grafana/k6:1.0.0
+          command: ["sh", "-c"]
+          args:
+            - |
+              k6 run --summary-export=/tmp/summary.json /scripts/baseline.js
+              rc=$?
+              echo "===SUMMARY_JSON==="
+              cat /tmp/summary.json
+              exit $rc
+          env:
+            - name: BASE_URL
+              value: http://ticket-service.ticketing.svc.cluster.local
+            - name: VUS
+              value: "VUS_VALUE"
+            - name: RATE
+              value: "RATE_VALUE"
+            - name: DURATION
+              value: "DURATION_VALUE"
+            - name: GIT_SHA
+              value: GIT_SHA_PLACEHOLDER
+          resources:
+            requests:
+              cpu: 500m
+              memory: 512Mi
+            limits:
+              memory: 2Gi            # open-loop 300 VU 대비 (baseline Job 1Gi보다 상향)
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+      volumes:
+        - name: scripts
+          configMap:
+            name: k6-scripts
+            items:
+              - key: baseline.js
+                path: baseline.js
+              - key: api.js
+                path: lib/api.js
