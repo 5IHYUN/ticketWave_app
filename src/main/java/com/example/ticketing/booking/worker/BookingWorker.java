@@ -1,6 +1,7 @@
 package com.example.ticketing.booking.worker;
 
 import com.example.ticketing.booking.sqs.BookingMessage;
+import com.example.ticketing.global.fault.FaultInjector;
 import com.example.ticketing.global.logging.LogKeys;
 import com.example.ticketing.queue.service.QueueService;
 import io.awspring.cloud.sqs.annotation.SqsListener;
@@ -28,6 +29,7 @@ public class BookingWorker {
     private final StringRedisTemplate redisTemplate;
     private final MeterRegistry meterRegistry;
     private final QueueService queueService;
+    private final FaultInjector faultInjector;
     private static final Duration RESULT_TTL = Duration.ofMinutes(5);
 
     @SqsListener("${app.sqs.booking-queue:booking-queue}")
@@ -40,6 +42,9 @@ public class BookingWorker {
             log.info("예약 메시지 수신 {} {}", kv(LogKeys.EVENT, "worker.received"), kv("queueWaitMs", queueWaitMs));
             // 큐 대기 시간 → booking_queue_wait_seconds (SQS 전송 시간 포함, Worker 처리량 부족·적체 시 증가)
             meterRegistry.timer("booking.queue.wait").record(Math.max(queueWaitMs, 0), TimeUnit.MILLISECONDS);
+
+            // 장애 주입(시나리오 1): 트랜잭션 밖 지연 → 처리 슬롯 점유·처리량 감소, 비활성 시 즉시 반환
+            faultInjector.workerDelay();
 
             long processStart = System.nanoTime();
             BookingResult outcome;

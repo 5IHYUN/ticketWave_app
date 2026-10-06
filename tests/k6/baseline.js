@@ -20,6 +20,11 @@ const RESULT_POLL_SEC = parseFloat(__ENV.RESULT_POLL_SEC || '0.25'); // 결과 �
 const THINK_TIME_SEC = parseFloat(__ENV.THINK_TIME_SEC || '1');
 const CANCEL_AFTER_CONFIRM = (__ENV.CANCEL_AFTER_CONFIRM || 'true') === 'true';
 const GIT_SHA = __ENV.GIT_SHA || 'unknown';  // 실행 로그 기록용
+// 도착률 모드 (장애 시나리오용, analysis/11)
+//   RATE 미지정: constant-vus (closed-loop, 기준값 측정) — VU가 결과를 받아야 다음 요청 → 서버가 느려지면 유입도 감소
+//   RATE 지정: constant-arrival-rate (open-loop) — 서버 상태와 무관하게 초당 RATE건 시작 → 실제 티켓 오픈처럼 적체 발생
+//     VUS = 최대 VU 수 = 테스트 계정 수. 부족하면 k6 dropped_iterations 증가
+const RATE = parseInt(__ENV.RATE || '0');
 
 // 409(선점 경합, 선점 만료)는 정상 업무 응답 → http_req_failed에서 제외
 http.setResponseCallback(http.expectedStatuses({ min: 200, max: 299 }, 409));
@@ -43,7 +48,10 @@ const unexpected = new Counter('unexpected_error');            // 예상 외 응
 export const options = {
   setupTimeout: '2m',
   scenarios: {
-    baseline: { executor: 'constant-vus', vus: VUS, duration: DURATION, gracefulStop: '40s' },
+    baseline: RATE > 0
+      ? { executor: 'constant-arrival-rate', rate: RATE, timeUnit: '1s', duration: DURATION,
+          preAllocatedVUs: Math.min(VUS, RATE * 3), maxVUs: VUS, gracefulStop: '40s' }
+      : { executor: 'constant-vus', vus: VUS, duration: DURATION, gracefulStop: '40s' },
   },
   thresholds: {
     // 기준값 측정용 관찰 기준 (SLO 아님, 실패해도 결과는 기록)
@@ -77,7 +85,7 @@ export function setup() {
   }
   if (users.length < VUS) throw new Error(`테스트 사용자 준비 실패: ${users.length}/${VUS}`);
 
-  console.log(`baseline 시작 — showId=${showId}, VUs=${VUS}, duration=${DURATION}, sha=${GIT_SHA}`);
+  console.log(`baseline 시작 — showId=${showId}, VUs=${VUS}, rate=${RATE || 'closed-loop'}, duration=${DURATION}, sha=${GIT_SHA}`);
   return { showId, users };
 }
 

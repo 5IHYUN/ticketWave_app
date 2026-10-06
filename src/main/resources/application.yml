@@ -55,6 +55,9 @@ app:
     token: ${ADMIN_TOKEN:admin}       # TODO: 기본값 제거 검토 (dev/prod ADMIN_TOKEN 주입 여부 확인 후)
   logging:
     slow-request-ms: ${APP_LOGGING_SLOW_REQUEST_MS:300}   # 이 시간 이상 걸린 HTTP 요청만 INFO 기록 (event=http.request)
+  fault:
+    # 장애 주입(FaultInjector) 활성화. dev·로컬 검증 전용, prod 미설정(기본 false)
+    enabled: ${FAULT_INJECTION_ENABLED:false}
   seat:
     # 좌석 선점 유지 시간, 서비스 정책 5분
     # (기존 local/docker/dev 10초는 정책과 불일치, 부하 시 예약 전 선점 만료로 CONFLICT 급증)
