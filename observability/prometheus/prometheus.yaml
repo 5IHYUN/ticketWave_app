@@ -3,6 +3,11 @@ global:
   scrape_interval: 5s                 # 로컬 실험용 짧은 주기 (k6 3분 실행 구간 해상도 확보)
   evaluation_interval: 5s
 
+# 알림 규칙: config 저장소 PrometheusRule에서 추출한 파일 (docker-compose 볼륨 마운트)
+#   로컬은 Alertmanager 없음 → Prometheus UI Alerts 탭에서 발화 확인
+rule_files:
+  - /etc/prometheus/rules/*.rules.yaml
+
 scrape_configs:
   - job_name: ticket-service
     metrics_path: /actuator/prometheus
@@ -10,3 +15,4 @@ scrape_configs:
       - targets: ["app:8080"]
         labels:
           env: local
+          namespace: ticketing        # 클러스터 라벨과 맞춤 → config 규칙·대시보드의 namespace 필터 그대로 사용
