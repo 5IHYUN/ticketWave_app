@@ -92,9 +92,15 @@ export function cancelMyBookings(jwt) {
   const res = http.get(`${API}/bookings/me`, { headers: auth(jwt), tags: { name: 'my_bookings', phase: 'cleanup' } });
   if (res.status !== 200) return 0;
   let n = 0;
+  // 취소 요청에 출처 식별 X-Request-Id 부여 (k6 실행 Pod·VU·반복 번호, 서버 로그 requestId로 기록)
+  //   같은 예약 중복 취소 시 어느 실행·VU가 보냈는지 확인 (analysis/09)
+  const host = String(__ENV.HOSTNAME || 'local').replace(/[^A-Za-z0-9-]/g, '').slice(-24);
   for (const b of res.json()) {
+    const reqId = `k6-${host}-vu${__VU}-i${__ITER}-${String(b.bookingId).slice(0, 8)}`.slice(0, 64);
+    const h = auth(jwt);
+    h['X-Request-Id'] = reqId;
     const d = http.del(`${API}/bookings/${b.bookingId}`, null,
-      { headers: auth(jwt), tags: { name: 'cancel', phase: 'cleanup' } });
+      { headers: h, tags: { name: 'cancel', phase: 'cleanup' } });
     if (d.status === 204) n++;
   }
   return n;

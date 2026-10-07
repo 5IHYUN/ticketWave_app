@@ -22,6 +22,8 @@ import org.springframework.data.redis.core.script.DefaultRedisScript;
 import com.example.ticketing.booking.repository.BookingRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
 import java.util.UUID;
@@ -164,8 +166,20 @@ public class BookingService {
 
    @Transactional
     public void cancelBooking(String bookingId, String userId) {
-        // 1) 예매 조회
-        Booking booking = bookingRepository.findById(bookingId)
+        // 취소 요청 추적 로그 (analysis/09: 같은 예약 동시 취소로 커밋 시 DELETE 0건 → 500, FOR UPDATE 조회로 404 처리)
+        //   requested: 요청 진입 시점, 같은 bookingId로 여러 건이면 중복 취소 요청 → requestId로 출처 확인
+        //   cancelled: 커밋 성공 후에만 기록 (커밋 실패 요청은 requested만 남음)
+        log.info("예약 취소 요청 {} {}", kv(LogKeys.EVENT, "booking.cancel_requested"), kv("bookingId", bookingId));
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                log.info("예약 취소 완료 {} {}", kv(LogKeys.EVENT, "booking.cancelled"), kv("bookingId", bookingId));
+            }
+        });
+
+        // 1) 예매 조회 + 행 잠금 (FOR UPDATE)
+        //    동시 취소 시 두 번째 요청은 여기서 대기 → 첫 번째 커밋 후 행이 없으므로 404
+        Booking booking = bookingRepository.findByIdForUpdate(bookingId)
                 .orElseThrow(() -> new NotFoundException("예매 내역을 찾을 수 없습니다."));
  
         // 2) 본인 예매인지 검증
